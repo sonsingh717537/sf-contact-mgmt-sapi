@@ -1,0 +1,10 @@
+{
+  "api": {
+    "name": "sf-contact-mgmt-sapi",
+    "version": "1.0.0",
+    "environment": "dev"
+  },
+  "status": "OK",
+  "message": "Success",
+  "timestamp": "2020-03-09T22:18:26.625Z"
+}

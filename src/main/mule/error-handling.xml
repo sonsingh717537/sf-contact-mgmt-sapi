@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sqs="http://www.mulesoft.org/schema/mule/sqs"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sqs http://www.mulesoft.org/schema/mule/sqs/current/mule-sqs.xsd">
+    <error-handler name="common-error-handler" doc:id="0451250d-a0d1-470c-a36a-3e21f203055c" >
+		<on-error-propagate type="APIKIT:BAD_REQUEST">
+            <logger level="INFO" doc:name="Error Description" doc:id="7c34edc8-15cc-4d94-95e6-849f52c768ab" message="#[error.description]"/>
+			<set-variable value='#["Bad Request"]' doc:name="httpDescription" doc:id="1d48ed37-7689-4751-be83-1dfe70ce5d5a" variableName="httpDescription"/>
+			<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Json Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 400,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+            <logger level="INFO" doc:name="Error Description" doc:id="f9812f5d-5947-4e79-89dc-ffe16e13fda3" message="#[error.description]"/>
+			<set-variable value='#["Resource Not Found"]' doc:name="httpDescription" doc:id="416f021a-d39b-47a4-9cb2-918ebdd2b6b5" variableName="httpDescription"/>
+			<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Json Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 404,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+            <logger level="INFO" doc:name="Error Description" doc:id="d19e8d29-a461-44e9-a280-e14ef3ab770a" message="#[error.description]"/>
+			<set-variable value='#["Method Not Allowed"]' doc:name="httpDescription" doc:id="42fc831f-ef57-4d35-97c5-02fecf1617d6" variableName="httpDescription"/>
+			<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Json Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 405,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+            <logger level="INFO" doc:name="Error Description" doc:id="403847dc-71b9-4af9-ad45-8707ff2046ad" message="#[error.description]"/>
+			<set-variable value='#["Not Acceptable"]' doc:name="httpDescription" doc:id="904ea595-ed27-4fc2-93b1-a2e07d012ab3" variableName="httpDescription"/>
+			<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Json Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 406,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+            <logger level="INFO" doc:name="Error Description" doc:id="1762f8b0-4834-440d-8ce7-009e759200cb" message="#[error.description]"/>
+			<set-variable value='#["Unsupported Media Type"]' doc:name="httpDescription" doc:id="4732c203-0519-4d98-931a-43f9b65ac37d" variableName="httpDescription"/>
+			<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Json Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 415,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate enableNotifications="true" logException="true" type="ANY">
+            <logger level="INFO" doc:name="Error Description" doc:id="e975514a-87e3-4f11-b83c-f8394eb8de0a" message="#[error.description]"/>
+			<set-variable value='#["Internal Server Error"]' doc:name="httpDescription" doc:id="7d874017-7145-4c69-846a-51f05d255b6b" variableName="httpDescription"/>
+			<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Json Error Response">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 500,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[500]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+	</error-handler>
+
+</mule>

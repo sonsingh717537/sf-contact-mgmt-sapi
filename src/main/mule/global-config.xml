@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	
+	<!-- APIkit configuration -->
+    <apikit:config name="sf-contact-mgmt-sapi-config" api="sf-contact-mgmt-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    
+	<!-- HTTP Listener Configuration -->
+	<http:listener-config name="HTTP_Listener_Config" doc:name="HTTP Listener config" doc:id="e8c29634-4a3e-4e4f-bda0-adf146ee1a0e">
+		<http:listener-connection host="${protocol.host}" port="${protocol.port}"/>
+	</http:listener-config>
+	
+	<!-- Global Properties -->
+	<global-property doc:name="Global Property" doc:id="08d0ebda-26be-41cc-8df0-f062501aca23" name="env" value='"dev"' />
+	<global-property doc:name="Global Property" doc:id="80727a71-11aa-409b-94f7-ee355b93ab9e" name="secure.key" value='"changeit"' />
+	<global-property doc:name="Global Property" doc:id="3fe978c8-eec6-4140-8401-c52c676b9d40" name="apiId" value='1' />	
+	
+	<!-- Configuration property details -->
+	<configuration-properties doc:name="Configuration properties" doc:id="d8cc374e-999d-401c-8ea2-1343655abf32" file="${env}.yaml" />
+	
+	<!-- Secure property configuration details -->
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="960835ff-fcb4-4f3e-8e40-8067290a52f8" file="${env}-secure.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	
+	<!-- <api-gateway:autodiscovery apiId="${apiId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="5476a1d2-e978-4c84-846b-6e86784e527c" flowRef="sf-contact-mgmt-sapi-main" /> -->
+	
+	<!-- Salesforce Configuration -->
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="891cf831-0dc7-40ba-8667-41db395767b7" >
+		<salesforce:basic-connection username="${secure::sf.username}" password="${secure::sf.password}" securityToken="${secure::sf.token}" url="${secure::sf.authUrl}" />
+	</salesforce:sfdc-config>
+
+</mule>

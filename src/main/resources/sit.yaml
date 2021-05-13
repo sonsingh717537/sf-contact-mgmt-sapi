@@ -1,0 +1,26 @@
+#Configuration Properties
+##### HTTP Configuration #####
+
+protocol:
+  #config: "HTTPS_Listener_Config"
+  config: "HTTP_Listener_Config"
+  host: "0.0.0.0"
+  port: "8090"
+  resourcePath: "/api/*"
+
+##### HTTP Configuration #####
+
+##### SF Configuration #####
+
+sf:
+  employeeObjectType : "Employees__c"
+  employeeExternalIdName : "Unique_Id__c"
+  addressObjectType : "Address__c"
+  addressExternalIdName : "Unique_Id__c"
+  allEmployeesQuery : "select Id, Name, Unique_Id__c, FirstName__c, DOB__c, Gender__c, LastName__c, Title__c from Employees__c"
+  employeeQuery : "select Id, Name, Unique_Id__c, FirstName__c, DOB__c, Gender__c, LastName__c, Title__c from Employees__c where Name = ':id'"
+  allAddressesForAnEmployeeQuery : "select Id, City__c, Name__c, State__c, Street__c, Type__c, Unit__c, Zipcode__c, Number__c from Address__c where Name__r.Name = ':id'"
+  allAddressesForAllEmployeesQuery : "select Id, City__c, Name__c, State__c, Street__c, Type__c, Unit__c, Zipcode__c, Number__c from Address__c"
+  timeout: "500" #seconds
+
+##### SF Configuration #####

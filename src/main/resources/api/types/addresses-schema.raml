@@ -1,0 +1,38 @@
+#%RAML 1.0 DataType
+displayName: Address object
+description: Defines the fields for address datatype
+
+type: object
+properties:
+  "type":
+    displayName: Type
+    description: "type"
+    type: string
+    required : true
+  number:
+    displayName: Number
+    description: number
+    type: integer
+  street:
+    displayName: Street 
+    description: street
+    type: string
+  unit:
+    displayName: Unit
+    description: unit
+    type: string
+  city:
+    displayName: City
+    description: city
+    type: string
+    required : true
+  state:
+    displayName: State
+    description: state
+    type: string
+    required : true
+  zipcode:
+    displayName: Zipcode
+    description: zipcode
+    type: string
+    required : true

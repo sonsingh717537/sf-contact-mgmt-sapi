@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <flow name="sf-contact-mgmt-sapi-main">
+        <http:listener config-ref="${protocol.config}" path="${protocol.resourcePath}">
+            <http:response statusCode="#[vars.httpStatus default 200]" reasonPhrase='#[vars.httpDescription default "Success"]'>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]" reasonPhrase='#[vars.httpDescription default "Internal Server Error"]'>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="Log Request Details" doc:id="21b493fb-c6e2-4c10-adc2-91cdf0b3a802" />
+		<logger level="DEBUG" doc:name="Log payload in debug mode" doc:id="e54e3085-9837-4c6e-b209-ca255a1094a4" message="#[payload]"/>
+		<apikit:router config-ref="sf-contact-mgmt-sapi-config"/>
+        <error-handler ref="common-error-handler">  
+        </error-handler>
+    </flow>
+    <flow name="sf-contact-mgmt-sapi-console">
+        <http:listener path="/console/*" config-ref="${protocol.config}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]" reasonPhrase='#[vars.httpDescription default "Internal Server Error"]'>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="sf-contact-mgmt-sapi-config"/>
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+            <logger level="INFO" doc:name="Error Description" doc:id="7c25eb15-681b-4596-843f-8a1bf4a2bca7" message="#[error.description]"/>
+			<ee:transform doc:name="http status and http description" doc:id="356b122b-e098-44e0-9a2d-d314dc834d4f" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+						<ee:set-variable variableName="httpDescription" ><![CDATA["Resource Not Found"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Error Response" doc:id="fdb198d7-535f-479d-9596-c7809cd36725">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"isSuccess" : false,
+	"errorCode" : 404,
+	"errorText" : error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                    </ee:variables>
+                </ee:transform>
+        	</on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\employees\(id):application\json:sf-contact-mgmt-sapi-config">
+        <flow-ref doc:name="Flow Ref : update-employee-object-in-salesforce-sub-flow" doc:id="b7aa3a3a-8820-4199-9d63-8b2239c404eb" name="update-employee-object-in-salesforce-sub-flow"/>
+    </flow>
+    <flow name="get:\employees\(id):sf-contact-mgmt-sapi-config">
+        <flow-ref doc:name="Flow Ref : retrieve-an-employee-object-from-salesforce-sub-flow" doc:id="fcc06f2c-868f-4acc-bfda-47e2507ee98f" name="retrieve-an-employee-object-from-salesforce-sub-flow"/>
+    </flow>
+    <flow name="get:\health-check:sf-contact-mgmt-sapi-config">
+        <flow-ref doc:name="Flow Ref : health-check-sub-flow" doc:id="93698993-961d-4917-8040-3b599459eedc" name="health-check-sub-flow"/>
+    </flow>
+    <flow name="get:\employees:sf-contact-mgmt-sapi-config">
+        <flow-ref doc:name="Flow Ref : retrieve-all-employee-objects-from-salesforce-sub-flow" doc:id="9bfad1eb-2604-4da1-be59-7fcf1bdc4cec" name="retrieve-all-employee-objects-from-salesforce-sub-flow"/>
+    </flow>
+    <flow name="post:\employees:application\json:sf-contact-mgmt-sapi-config">
+        <flow-ref doc:name="Flow Ref : create-employee-object-in-salesforce-sub-flow" doc:id="87506fef-b9cc-4669-a763-a2605ac1838c" name="create-employee-object-in-salesforce-sub-flow"/>
+    </flow>
+</mule>

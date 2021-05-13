@@ -1,0 +1,78 @@
+#%RAML 1.0
+title: sf-contact-mgmt-sapi
+version: v1
+description: Contact Management API acts as a interface to salesforce employee object.
+mediaType: [ application/json ]
+protocols: [ HTTP, HTTPS ]
+baseUri: https://sf-contact-mgmt-sapi/employee/api/{version}
+
+securedBy: [ basic_authentication, client_credentials]
+securitySchemes:
+  basic_authentication: !include security-schemas/basic_authentication.raml
+  client_credentials: !include security-schemas/client-credentials.raml
+  
+traits:
+  standard-error-responses: !include traits/standard-error-responses.raml
+
+types:
+  employee: !include types/employee-schema.raml
+  addresses : !include types/addresses-schema.raml
+  health-check: !include types/health-check-schema.raml
+
+/employees:
+  displayName: employee resource
+  description: create/update/retrieve employee information
+  is: [standard-error-responses]
+  post:
+    description: Insert an employee information
+    body: 
+      application/json:
+        displayName: Employee request json body
+        type: employee
+        example: !include examples/json/sample-request-create-employee.json
+    responses: 
+      204:
+        description : No Content
+  get:
+    description: retrive all employees.
+    responses:
+      200:
+        description : Success
+        body:
+          application/json:
+            type : employee[]
+            example: !include examples/json/sample-response-retrieve-all-employees.json
+  /{id}:
+    displayName:  Employee information
+    description: update/retrive an employee
+    is: [standard-error-responses]
+    get:
+      description: retrive an employee.
+      responses:
+        200:
+          description : Success
+          body:
+            application/json:
+              type : employee
+              example: !include examples/json/sample-response-retrieve-employee.json
+    put:
+      description: update an employee.
+      body: 
+        application/json:
+          displayName: Json request body
+          type: employee
+          example: !include examples/json/sample-request-update-employee.json
+      responses: 
+        204:
+          description : No Content
+/health-check:
+  displayName: Health Check Resource
+  description: The health check resource will be used to provide information on the API health to the functional monitoring system.
+  is: [standard-error-responses]
+  get:
+    responses: 
+      200:
+        body: 
+          application/json:
+            type: health-check
+            example: !include examples/json/health-check.json

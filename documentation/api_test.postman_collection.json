@@ -1,0 +1,147 @@
+{
+	"info": {
+		"_postman_id": "47c3db30-fbbe-41b6-9970-b4c80001c750",
+		"name": "api_test",
+		"description": "Contact API Requests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get all employees",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8090/api/employees",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"api",
+						"employees"
+					]
+				},
+				"description": "GET all employees"
+			},
+			"response": []
+		},
+		{
+			"name": "API Health Check",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8090/api/health-check",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"api",
+						"health-check"
+					]
+				},
+				"description": "GET all employees"
+			},
+			"response": []
+		},
+		{
+			"name": "Get an employee",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8090/api/employees/10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"api",
+						"employees",
+						"10"
+					]
+				},
+				"description": "GET all employees"
+			},
+			"response": []
+		},
+		{
+			"name": "Create an employee",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"identification\": {\r\n    \"firstName\": \"Bob\",\r\n    \"lastName\": \"Frederick\",\r\n    \"dob\": \"06/21/1980\",\r\n    \"gender\": \"M\",\r\n    \"title\": \"Manager\"\r\n  },\r\n  \"address\": [\r\n    {\r\n      \"type\": \"home\",\r\n      \"number\": 1234,\r\n      \"street\": \"blah blah St\",\r\n      \"unit\": \"1 a\",\r\n      \"city\": \"Somewhere\",\r\n      \"state\": \"WV\",\r\n      \"zipcode\": \"12345\"\r\n    },\r\n\t{\r\n      \"type\": \"office\",\r\n      \"number\": 23456,\r\n      \"street\": \"St Peters\",\r\n      \"unit\": \"7 B\",\r\n      \"city\": \"Toronto\",\r\n      \"state\": \"ON\",\r\n      \"zipcode\": \"1024821\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8090/api/employees",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"api",
+						"employees"
+					]
+				},
+				"description": "GET all employees"
+			},
+			"response": []
+		},
+		{
+			"name": "Update an employee",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8090/api/employees/4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"api",
+						"employees",
+						"4"
+					]
+				},
+				"description": "GET all employees"
+			},
+			"response": []
+		}
+	]
+}

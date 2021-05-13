@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <sub-flow name="update-employee-object-in-salesforce-sub-flow">
+        <logger level="INFO" doc:name="Logger" doc:id="092bfeee-368f-43aa-868f-d7abb6a20c28" message="update-employee-object-in-salesforce-sub-flow : Starts"/>
+		<set-variable value="#[attributes.uriParams.'id']" doc:name="Set id Variable" doc:id="2330b4a1-d110-48d6-80a2-47bfa2c81fa7" variableName="id"/>
+		<flow-ref doc:name="Flow Ref : get-employee-sf-object-sub-flow" doc:id="a355db1a-c923-4440-a542-f7d658fb77d4" name="get-employee-sf-object-sub-flow"/>
+		<choice doc:name="Choice" doc:id="c62b13f4-c7ed-41dc-a17e-7911fef4accf" >
+			<when expression="#[not (isEmpty(vars.sfAnEmployeeResponse))]">
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:name="update employee request payload" doc:id="2a231afb-1dc1-4235-8fe2-f5c555693e55">
+            <ee:message>
+			</ee:message>
+			<ee:variables>
+						<ee:set-variable resource="dwl/update-employee-request.dwl" variableName="employeeUpdateRequest" />
+            </ee:variables>
+        </ee:transform>
+				<try doc:name="Try" doc:id="bd8ab6ca-4bc0-4305-96c7-599a9dc55e1c" transactionalAction="BEGIN_OR_JOIN">
+					<until-successful maxRetries="2" doc:name="Until Successful" doc:id="11e915ec-db96-45aa-8714-583ee54cc803">
+					<salesforce:update doc:name="Update Employee" doc:id="a6ca51f5-5c02-4f7e-95b5-f7bba1c295d3" config-ref="Salesforce_Config" type="${sf.employeeObjectType}" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="sfEmployeeUpdateResponse" targetValue="#[output application/json --- payload]">
+					<reconnect />
+						<salesforce:records><![CDATA[#[vars.employeeUpdateRequest]]]></salesforce:records>
+				</salesforce:update>
+				</until-successful>
+				</try>
+				<choice doc:name="Choice" doc:id="41098902-8017-498a-bee8-3a5936fd7b3e">
+					<when expression="#[vars.sfEmployeeUpdateResponse.successful]">
+							<flow-ref doc:name="Flow Ref : get-all-addresses-for-an-employee-sf-object-sub-flow" doc:id="eb00ade2-1e02-4132-8ebe-44528bc8c204" name="get-all-addresses-for-an-employee-sf-object-sub-flow" />
+						<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:name="update address request payload" doc:id="56ef438d-a4b8-4dff-8b9d-5675a7d4de93">
+            <ee:message>
+			</ee:message>
+			<ee:variables>
+						<ee:set-variable resource="dwl/update-addresses-request.dwl" variableName="addressUpdateRequest" />
+            </ee:variables>
+        </ee:transform>
+						<try doc:name="Try" doc:id="23234ee2-4bb3-44e8-acb5-8aaa1c5dc2fb" transactionalAction="BEGIN_OR_JOIN">
+							<until-successful maxRetries="2" doc:name="Until Successful" doc:id="dc31560d-34d0-487f-b90d-e986670d373c">
+							<salesforce:upsert doc:name="Upsert to address object" doc:id="8faaf487-a0f0-404d-9e2d-81bed783dc80" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="addressSfResponse" objectType="${sf.addressObjectType}" externalIdFieldName="${sf.addressExternalIdName}" targetValue="#[output application/json --- payload]">
+					<reconnect />
+					<salesforce:records><![CDATA[#[vars.addressUpdateRequest]]]></salesforce:records>
+				</salesforce:upsert>
+						</until-successful>
+							<choice doc:name="Choice" doc:id="3d866365-1c49-45b9-9c2c-4a2a546b6854">
+							<when expression="#[vars.addressSfResponse.successful]">
+								<ee:transform doc:name="Response" doc:id="500fb25d-334f-4a67-8586-652001a98438">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+""]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+							</when>
+							<otherwise>
+								<logger level="INFO" doc:name="Logger" doc:id="50180b4c-fe73-4281-bdb6-e71854507934" message='#["Addresses of the employee could not get updated due to technical error - " ++ vars.addressSfResponse.items[0].exception.message default ""]' />
+							<set-payload value='#["Addresses of the employee could not get updated due to technical error - " ++ vars.addressSfResponse.items[0].exception.message default ""]' doc:name="Set Payload" doc:id="8c2e4736-f6a9-4682-82c5-0dd67a2aeb37" />
+								<raise-error doc:name="Raise error" doc:id="4a8bb889-59c3-484d-a32b-08527b0584a3" description="Addresses of the employee could not get updated due to technical error" type="CUSTOM_ERROR:SF_ADDR_OBJ_FAILURES" />
+							</otherwise>
+						</choice>
+						</try>
+						</when>
+						<otherwise>
+							<logger level="INFO" doc:name="Logger" doc:id="b9b4ff26-4dec-47e7-bb40-8c7e274f961b" message='#["Employee could not get updated due to technical error - " ++ vars.sfEmployeeUpdateResponse.items[0].exception.message default ""]'/>
+						<set-payload value='#["Employee could not get updated due to technical error - " ++ vars.sfEmployeeUpdateResponse.items[0].exception.message default ""]' doc:name="Set Payload" doc:id="0a3e784c-f8ea-4606-8517-d4c9d065401c" />
+						<raise-error doc:name="Raise error" doc:id="d9786ea1-c758-47ad-a1a3-7f2646e09ff8" type="CUSTOM_ERROR:SF_EMP_OBJ_FAILURES" description="Employee could not get updated due to technical error"/>
+						</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="eeb75430-770e-40f8-bb25-85689708ab6f" message='#["Employee does not exists in salesforce so it cannot be updated"]'/>
+				<set-payload value='#["Employee does not exists in salesforce so it cannot be updated"]' doc:name="Set Payload" doc:id="816a8216-f20f-4388-9374-79f01cab8833" />
+				<raise-error doc:name="Raise error" doc:id="6106400e-1127-4b36-8c8a-b1cde32c9826" type="CUSTOM_ERROR:EMP_NOT_FOUND" description="Employee does not exists in salesforce so it cannot be updated"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="41224873-60d5-4b17-ac7a-9c0ff90db6dc" message="update-employee-object-in-salesforce-sub-flow : Ends"/>
+    </sub-flow>
+    <sub-flow name="retrieve-an-employee-object-from-salesforce-sub-flow">
+        <logger level="INFO" doc:name="Logger" doc:id="d7e930b7-d7d4-4a76-9183-2971d96dcdcc" message="retrieve-an-employee-object-from-salesforce-sub-flow : Starts"/>
+        <set-variable value="#[attributes.uriParams.'id']" doc:name="Set id Variable" doc:id="5a5b768b-53de-4cfe-bbe3-2d3d4d52b967" variableName="id"/>
+		<flow-ref doc:name="Flow Ref : get-employee-sf-object-sub-flow" doc:id="e7c99dea-3a15-40e9-a690-24b43f4f2aed" name="get-employee-sf-object-sub-flow"/>
+		<choice doc:name="Choice" doc:id="6888a18f-2d7b-4f9e-95b6-b894b8715278" >
+			<when expression="#[not (isEmpty(vars.sfAnEmployeeResponse))]">
+				<set-variable value="#[vars.sfAnEmployeeResponse.Name[0]]" doc:name="Set addressForEmployeeKey Variable" doc:id="5cb13374-78e0-4f77-a046-6ccec9f49d06" variableName="addressForEmployeeKey" />
+				<flow-ref doc:name="Flow Ref : get-all-addresses-for-an-employee-sf-object-sub-flow" doc:id="22993e22-da6d-4d3b-a140-15542310c8b8" name="get-all-addresses-for-an-employee-sf-object-sub-flow" />
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Get Employee Respone">
+            <ee:message>
+						<ee:set-payload resource="dwl/get-employee-response.dwl" />
+            </ee:message>
+        </ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="ca40ff28-1131-4c21-9e9b-8d770aa2c4df" message="Employee does not exists in salesforce"/>
+				<set-payload value='#["Employee does not exists in salesforce"]' doc:name="Set Payload" doc:id="1b0c085e-e492-4c95-bdb6-fb5242e55735" />
+				<raise-error doc:name="Raise error" doc:id="ccb71f75-0ab4-481c-a37d-f2688ad6c219" description="Employee does not exists in salesforce" type="CUSTOM_ERROR:EMP_NOT_FOUND"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="9d48c1ac-068a-49f2-9f1f-889455ad9efe" message="retrieve-an-employee-object-from-salesforce-sub-flow : Ends"/>
+    </sub-flow>
+    <sub-flow name="get-employee-sf-object-sub-flow" doc:id="e94741a6-97ec-4de2-8fbf-54613ae46439" >
+		<until-successful maxRetries="2" doc:name="Until Successful" doc:id="c35c334f-f434-4ec3-a770-9cb8cf45e74b" >
+			<salesforce:query doc:name="Query an employee" doc:id="c6c5b5f2-41f5-4143-905b-e44dd53f2169" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="sfAnEmployeeResponse" targetValue="#[output application/json --- payload]">
+			<reconnect />
+			<salesforce:salesforce-query><![CDATA[${sf.employeeQuery}]]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"id" : vars.id
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		</until-successful>
+	</sub-flow>
+	<sub-flow name="get-all-addresses-for-an-employee-sf-object-sub-flow" doc:id="267c4569-683c-419e-bee1-3dacd9126a30" >
+		<until-successful maxRetries="2" doc:name="Until Successful" doc:id="2ce42ae2-807d-4fd8-9533-4b155db54ea2" >
+			<salesforce:query doc:name="Query all addresses for an  employee" doc:id="3afc6433-69b6-4df8-9873-3a24a5c10d52" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="sfAddressesOfAnEmployeeResponse" targetValue="#[output application/json --- payload]">
+			<reconnect />
+			<salesforce:salesforce-query><![CDATA[${sf.allAddressesForAnEmployeeQuery}]]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"id" : vars.addressForEmployeeKey
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		</until-successful>
+	</sub-flow>
+	<sub-flow name="get-all-addresses-for-all-employees-sf-object-sub-flow" doc:id="32d88cb2-a46d-4aef-8ede-0bcdf83503bf" >
+		<until-successful maxRetries="2" doc:name="Until Successful" doc:id="c4e34110-c47d-44b5-b753-c3f5b130c6a6" >
+			<salesforce:query doc:name="Query all addresses for all employees" doc:id="5ae876d1-34db-4825-9315-5c9d8f363939" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="sfAddressesOfAllEmployeesResponse" targetValue="#[output application/json --- payload]">
+			<reconnect />
+			<salesforce:salesforce-query><![CDATA[${sf.allAddressesForAllEmployeesQuery}]]></salesforce:salesforce-query>
+		</salesforce:query>
+		</until-successful>
+	</sub-flow>
+	<sub-flow name="get-all-employee-sf-object-sub-flow" doc:id="ad70c40f-8226-43ec-b97b-a8c1870b0fa3" >
+		<until-successful maxRetries="2" doc:name="Until Successful" doc:id="3276cc2a-0dc8-43b0-89e8-4d8975b5dd6a" >
+			<salesforce:query doc:name="Query All Employees" doc:id="f410860e-25c2-4001-84e4-cbb0966fcda1" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="sfAllEmployeeResponse" targetValue="#[output application/json --- payload]">
+			<reconnect />
+			<salesforce:salesforce-query><![CDATA[${sf.allEmployeesQuery}]]></salesforce:salesforce-query>
+		</salesforce:query>
+		</until-successful>
+	</sub-flow>
+	<sub-flow name="create-employee-sf-object-sub-flow" doc:id="cd2dad45-8670-46d2-8cf0-a7500d074aca" >
+		<set-variable value="#[uuid()]" doc:name="Set uniqueId Variable" doc:id="b3587db4-ac89-4372-b221-88847c8f2572" variableName="uniqueId"/>
+		<ee:transform doc:name="Create Employee Input Payload" doc:id="704b7027-f037-44a5-b539-2753890edbf2" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable resource="dwl/create-employee-request.dwl" variableName="employeeInfo" />
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="f2b0a235-122a-4068-a92c-b55e0bd11f3e" transactionalAction="BEGIN_OR_JOIN">
+			<until-successful maxRetries="2" doc:name="Until Successful" doc:id="8de9fdb0-13f1-40f7-bb86-090a3d506c1d">
+			<salesforce:upsert doc:name="Upsert to employee object" doc:id="9782cad0-b1cc-4b76-a785-4517d3d78bc9" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" objectType="${sf.employeeObjectType}" externalIdFieldName="${sf.employeeExternalIdName}" target="employeeSfResponse" targetValue="#[output application/json --- payload]">
+			<reconnect />
+			<salesforce:records><![CDATA[#[vars.employeeInfo]]]></salesforce:records>
+		</salesforce:upsert>
+		</until-successful>
+		</try>
+		<choice doc:name="Choice" doc:id="5e1b0fb9-5fbb-4072-aad9-f9c607383a06" >
+			<when expression="#[vars.employeeSfResponse.successful]">
+				<choice doc:name="Choice" doc:id="1ba45a4b-0ed3-45ae-acf1-673d452b972a">
+			<when expression="#[not (isEmpty(payload.address))]">
+				<flow-ref doc:name="Flow Ref : get-all-employee-sf-object-sub-flow" doc:id="835e191f-07d5-4a2c-84ec-e3f81781e457" name="get-all-employee-sf-object-sub-flow" />
+				<ee:transform doc:name="Create Address Input" doc:id="2a7fcb69-84b7-4e3c-92c5-564a7bc8bc80">
+			<ee:message>
+			</ee:message>
+					<ee:variables>
+						<ee:set-variable resource="dwl/create-addresses-request.dwl" variableName="addressInfo" />
+					</ee:variables>
+		</ee:transform>
+				<until-successful maxRetries="2" doc:name="Until Successful" doc:id="365ce473-4546-48ef-a576-e54236f4f77a">
+					<salesforce:upsert doc:name="Upsert to address object" doc:id="2e03a3d0-0db6-4c3d-8079-0456a4c5dbdd" config-ref="Salesforce_Config" readTimeout="${sf.timeout}" readTimeoutUnit="SECONDS" target="addressSfResponse" objectType="${sf.addressObjectType}" externalIdFieldName="${sf.addressExternalIdName}" targetValue="#[output application/json --- payload]">
+					<reconnect />
+					<salesforce:records><![CDATA[#[vars.addressInfo]]]></salesforce:records>
+				</salesforce:upsert>
+				</until-successful>
+						<choice doc:name="Choice" doc:id="bd4fdf72-3f44-4b6f-ba7d-720ffc60e7df" >
+							<when expression="#[vars.addressSfResponse.successful]">
+								<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Respone">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+""]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+							</when>
+							<otherwise >
+								<logger level="INFO" doc:name="Logger" doc:id="b13438d3-b47a-4316-a299-755376a22391" message='#["Addresses could not get created for the current employee due to technical error - " ++ vars.addressSfResponse.items[0].exception.message default ""]'/>
+								<set-payload value='#["Addresses could not get created for the current employee due to technical error - " ++ vars.addressSfResponse.items[0].exception.message default ""]' doc:name="Set Payload" doc:id="1d2c2192-049b-4aa2-bafd-fdb3ac491acc" />
+								<raise-error doc:name="Raise error" doc:id="f61d6919-ee0d-4bbe-b185-532acf9c7c1f" type="CUSTOM_ERROR:SF_ADDR_OBJ_FAILURES" description="Addresses could not get created for the current employee due to technical error"/>
+							</otherwise>
+						</choice>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="ade90f06-1fe0-417d-a884-c065a8e4427b" message="Address information is not available in input data for current employee" />
+			</otherwise>
+		</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="1e91f182-99a8-48ee-9566-a1749b33fdb0" message='#["Employee could not get created due to technical error - " ++ vars.employeeSfResponse.items[0].exception.message default ""]'/>
+				<set-payload value='#["Employee could not get created due to technical error - " ++ vars.employeeSfResponse.items[0].exception.message default ""]' doc:name="Set Payload" doc:id="321e3efa-0383-4f31-a29c-8e65a5215cc5" />
+				<raise-error doc:name="Raise error" doc:id="ec7aa3d8-03af-4adf-aff7-35570c5839f3" type="CUSTOM_ERROR:SF_EMP_OBJ_FAILURES" description="Employee could not get created due to technical error"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="health-check-sub-flow">
+        <logger level="INFO" doc:name="Logger" doc:id="cc78ff11-7186-422c-ade5-47fa8d91e473" message="health-check-sub-flow : Starts"/>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="health check response">
+            <ee:message>
+				<ee:set-payload resource="dwl/health-check.dwl" />
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b4fb496c-72b9-49b5-8a74-a1bf883f5d66" message="health-check-sub-flow : Ends"/>
+    </sub-flow>
+    <sub-flow name="retrieve-all-employee-objects-from-salesforce-sub-flow">
+        <logger level="INFO" doc:name="Logger" doc:id="62c8c952-555a-4b69-8e5d-cb13f9977a54" message="retrieve-all-employee-objects-from-salesforce-sub-flow : Starts"/>
+		<flow-ref doc:name="Flow Ref : get-all-employee-sf-object-sub-flow" doc:id="b4f3e3c0-086f-468d-b4a1-ff5fcd7ff8a6" name="get-all-employee-sf-object-sub-flow"/>
+		<choice doc:name="Choice" doc:id="9a5ed8a1-729f-4873-b5d5-14d5a1bbc475" >
+			<when expression="#[not (isEmpty(vars.sfAllEmployeeResponse))]">
+				<flow-ref doc:name="Flow Ref : get-all-addresses-for-all-employees-sf-object-sub-flow" doc:id="4f4061be-9164-4390-9749-4c2328cca129" name="get-all-addresses-for-all-employees-sf-object-sub-flow"/>
+				<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="Get all Respone">
+            <ee:message>
+						<ee:set-payload resource="dwl/get-all-employees-response.dwl" />
+            </ee:message>
+        </ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="ecc8f6f1-6f40-49a9-916c-dfb73e385384" message="Employees does not exists in salesforce"/>
+				<set-payload value='#["Employees does not exists in salesforce"]' doc:name="Set Payload" doc:id="fc4fc320-6d1a-4f06-8b5e-33665229020b" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="d1d8d6db-4750-4938-b508-f00eb601260c" message="retrieve-all-employee-objects-from-salesforce-sub-flow : Ends"/>
+    </sub-flow>
+    <sub-flow name="create-employee-object-in-salesforce-sub-flow">
+        <logger level="INFO" doc:name="Logger" doc:id="ec792852-f674-4826-bde8-44c0e1d39547" message="create-employee-object-in-salesforce-sub-flow : Starts"/>
+		<flow-ref doc:name="Flow Ref : create-employee-sf-object-sub-flow" doc:id="779efbff-1682-4fcc-aaf8-3b05e80e7842" name="create-employee-sf-object-sub-flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1682a4a3-056f-4f10-94c5-9147ea1c23cf" message="create-employee-object-in-salesforce-sub-flow : Ends"/>
+    </sub-flow>
+</mule>

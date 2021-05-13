@@ -1,0 +1,60 @@
+[
+  {
+    "identification": {
+      "firstName": "Bob",
+      "lastName": "Frederick",
+      "dob": "06/21/1980",
+      "gender": "M",
+      "title": "Manager"
+    },
+    "address": [
+      {
+        "type": "home",
+        "number": 1234,
+        "street": "blah blah St",
+        "unit": "1 a",
+        "city": "Somewhere",
+        "state": "WV",
+        "zipcode": "12345"
+      },
+      {
+        "type": "office",
+        "number": 23456,
+        "street": "St Peters",
+        "unit": "7 B",
+        "city": "Toronto",
+        "state": "ON",
+        "zipcode": "1024821"
+      }
+    ]
+  },
+  {
+    "identification": {
+      "firstName": "Bob",
+      "lastName": "Frederick",
+      "dob": "06/21/1980",
+      "gender": "M",
+      "title": "Manager"
+    },
+    "address": [
+      {
+        "type": "home",
+        "number": 1234,
+        "street": "blah blah St",
+        "unit": "1 a",
+        "city": "Somewhere",
+        "state": "WV",
+        "zipcode": "12345"
+      },
+      {
+        "type": "office",
+        "number": 23456,
+        "street": "St Peters",
+        "unit": "7 B",
+        "city": "Toronto",
+        "state": "ON",
+        "zipcode": "1024821"
+      }
+    ]
+  }
+]

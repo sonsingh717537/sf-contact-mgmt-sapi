@@ -1,0 +1,33 @@
+#%RAML 1.0 DataType
+displayName: Employee object
+description: Defines the fields for Employee datatype
+
+type: object
+properties:
+  identification:
+    type: object
+    properties:
+      firstName:
+        displayName: First Name
+        description: first-name
+        type: string
+        required : true
+      lastName:
+        displayName: Last Name
+        description: last-name
+        type: string
+      dob:
+        displayName: DOB 
+        description: date-of-birth
+        type: string
+        required : true
+      gender:
+        displayName: Gender
+        description: gender
+        type: string
+      title:
+        displayName: Title
+        description: title
+        type: string
+  address?:
+    type: addresses[]
