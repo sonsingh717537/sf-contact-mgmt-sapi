@@ -32,6 +32,7 @@ The application supports following operations : Create an employee, Get all empl
 6. Post configuration changes, project is ready to be deployed on mule server.
 	
 	**Deploy in studio** - [how to deploy mule application in studio](http://workshop.tools.mulesoft.com/modules/module3_lab3#step-1-run-the-api)
+	
 	**Deploy on mule server** - To deploy application on mule server. Create Deployable Mule Application by any of the below methods -
 	
 		a. **Using Command Prompt** - mvn clean install -Dsecure.key=<changeit> -Denv=dev
@@ -39,8 +40,8 @@ The application supports following operations : Create an employee, Get all empl
 	
 	**Note** : Make sure to pass below environment variables while deploying the application.
 		
-		a. secure.key 		<SECURE KEY> - Secure key used to encrypt values needs to be passed as environment variable while deployment like **secure.key** = **changeit**
-		b. env 				<Environment> - Environment on which application is being deployed. Permissible values - [dev, sit, uat, prod]. By default dev configuration will be enabled.
+		a. secure.key 	<SECURE KEY> - Secure key used to encrypt values needs to be passed as environment variable while deployment like **secure.key** = **changeit**
+		b. env 		<Environment> - Environment on which application is being deployed. Permissible values - [dev, sit, uat, prod]. By default dev configuration will be enabled.
 
 7. Make a request (POST, PUT, GET (an employee), GET (all employees)) to request to *http://localhost:8090/api/ with the 'Content-Type' header set as 'application/json'
 
