@@ -1,4 +1,4 @@
-#Contact API : Employee data in Salesforce
+### Contact API : Employee data in Salesforce ###
 
 Contact Management API facilitates employee data movement to Salesforce system by making API calls to the Contact system API.
 
@@ -18,10 +18,10 @@ The application supports following operations : Create an employee, Get all empl
 
 2. Provide salesforce credentials in configuration files. Configuration files are environment specific and respective salesforce instance credentials needs to be added/updated in configuration files. Change the contents of the **username**, **password** **securityToken**and **hostname** fields to your account-specific values as follows:
 
-		username						<USERNAME>
+		username					<USERNAME>
 		securityToken					<SALESFORCE TOKEN> - Salesforce : Authorization token
-		password						<PASSWORD>
-		url								<URL> - for example https://test.salesforce.com/
+		password					<PASSWORD>
+		url						<URL> - for example https://test.salesforce.com/
 
 3. Salesforce credentials information needs to be stored in encrypted form. MuleSoft provided utility [Secure Properties Tool Jar file](https://docs.mulesoft.com/downloads/mule-runtime/4.2/secure-properties-tool.jar) can be used to encrypt credentials. For more information on encryption process please [refer](https://docs.mulesoft.com/mule-runtime/4.3/secure-configuration-properties). **Sample command** : java -cp secure-properties-tool.jar com.mulesoft.tools.SecurePropertiesTool string encrypt Blowfish CBC <secure key> <value to be encrypted>
 
