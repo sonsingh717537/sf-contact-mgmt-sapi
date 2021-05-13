@@ -2,7 +2,7 @@
 output application/json
 fun dateCoversion (dateValue) = if (not (isEmpty(dateValue))) dateValue as Date {format : "yyyy-MM-dd"} as String {format : "MM/dd/yyyy"} else null
 ---
-(vars.sfAllEmployeeResponse default [] map (emp, empKey) -> using (addressArray = (vars.sfAddressesOfAllEmployeesResponse filter $.Name__c == emp.Name)) {
+(vars.sfAllEmployeeResponse default [] map (emp, empKey) -> using (addressArray = (vars.sfAddressesOfAllEmployeesResponse filter $.Name__c == emp.Id)) {
     identification: {
     	"firstName": emp.FirstName__c,
 		"lastName": emp.LastName__c,
